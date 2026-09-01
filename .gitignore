@@ -94,3 +94,7 @@ Portable Edition/
 Source Archive/
 Standard edition/
 
+*.ppu
+*.o
+avro_cli
+libavrocore.so

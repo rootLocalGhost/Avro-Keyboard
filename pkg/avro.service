@@ -1,0 +1,11 @@
+[Unit]
+Description=Avro Keyboard Daemon
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/avro-daemon
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
