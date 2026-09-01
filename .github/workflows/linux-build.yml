@@ -1,0 +1,35 @@
+name: Linux Build
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Free Pascal Compiler
+      run: sudo apt-get update && sudo apt-get install -y fpc
+
+    - name: Build Core Test
+      run: |
+        fpc @src/core/fpc.cfg src/core/avrocore_test.pas
+
+    - name: Build CLI
+      run: |
+        fpc @src/core/fpc.cfg src/core/avro_cli.pas
+
+    - name: Run Tests
+      run: |
+        chmod +x run_tests.sh
+        ./run_tests.sh
+
+    - name: Build Shared Library
+      run: |
+        fpc -fPIC @src/core/fpc.cfg src/core/libavrocore.pas
+        mv src/core/liblibavrocore.so src/core/libavrocore.so

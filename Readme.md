@@ -54,3 +54,30 @@ Delphi community edition doesn't come with command line compiler. In order to bu
 ## License
 
 Avro Keyboard is licensed under **MOZILLA PUBLIC LICENSE Version 2.0**. You should receive a copy of the license in LICENSE.txt file with both binaries and source. An online version of the license can be found at: [https://www.mozilla.org/en-US/MPL/2.0/](https://www.mozilla.org/en-US/MPL/2.0/ "https://www.mozilla.org/en-US/MPL/2.0/")
+
+## Linux Support & Compilation
+
+Avro Keyboard core translation engine can now be built on Linux using Free Pascal Compiler (fpc).
+
+### Dependencies
+Install Free Pascal on Debian/Ubuntu/Fedora:
+```sh
+sudo apt-get update && sudo apt-get install -y fpc
+```
+
+### Build the CLI Tool
+```sh
+fpc @src/core/fpc.cfg src/core/avro_cli.pas
+./src/core/avro_cli amra bangla
+```
+
+### Build the Shared Library (`libavrocore.so`)
+```sh
+fpc -fPIC @src/core/fpc.cfg src/core/libavrocore.pas
+mv src/core/liblibavrocore.so src/core/libavrocore.so
+```
+
+### Run Unit Tests
+```sh
+./run_tests.sh
+```
