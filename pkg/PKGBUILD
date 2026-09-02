@@ -8,7 +8,7 @@ license=('MPL')
 depends=('quickshell' 'fpc' 'glibc' 'wayland' 'qt6-declarative' 'python' 'fcitx5')
 makedepends=('fpc' 'git')
 # Source from the local project root
-source=("git+file://${PWD}/..")
+source=("git+file://$(realpath "${startdir}/..")")
 sha256sums=('SKIP')
 
 build() {
