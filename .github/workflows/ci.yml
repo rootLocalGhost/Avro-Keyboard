@@ -24,7 +24,10 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         choco install lazarus -y
-        echo "C:\lazarus\fpc\3.2.2\bin\x86_64-win64" >> $GITHUB_PATH
+        # Chocolatey installs Lazarus to C:\lazarus by default.
+        # FPC path depends on the version installed by choco. We can find the fpc.exe path and add it to GITHUB_PATH.
+        $fpcPath = (Get-ChildItem -Path C:\lazarus\fpc -Filter "fpc.exe" -Recurse).DirectoryName
+        echo "$fpcPath" >> $env:GITHUB_PATH
 
     - name: Build and Run Core Test (Linux)
       if: runner.os == 'Linux'

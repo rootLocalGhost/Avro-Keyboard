@@ -81,10 +81,15 @@ jobs:
     - name: Run Windows Core Tests (FPC)
       run: |
         choco install lazarus -y
-        # Lazarus installs FPC. The bin path is usually C:\lazarus\fpc\3.2.2\bin\x86_64-win64 or similar. Let's add it to path.
-        $env:Path = "C:\lazarus\fpc\3.2.2\bin\x86_64-win64;" + $env:Path
+        $fpcPath = (Get-ChildItem -Path C:\lazarus\fpc -Filter "fpc.exe" -Recurse).DirectoryName
+        $env:Path = "$fpcPath;" + $env:Path
         fpc -Mdelphi @src/core/fpc.cfg -Fu"src/core/" tests/run_tests.pas
         .\tests\run_tests.exe
+
+    - name: Set FPC Path for Windows Build
+      run: |
+        $fpcPath = (Get-ChildItem -Path C:\lazarus\fpc -Filter "fpc.exe" -Recurse).DirectoryName
+        echo "$fpcPath" >> $env:GITHUB_PATH
 
     - name: Build Windows Target (FPC Core)
       run: |
