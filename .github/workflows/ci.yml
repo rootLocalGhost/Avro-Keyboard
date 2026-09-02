@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Free Pascal Compiler (Linux)
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install -y fpc
+
+    - name: Install Free Pascal Compiler (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install lazarus -y
+        # Chocolatey installs Lazarus to C:\lazarus by default.
+        # FPC path depends on the version installed by choco. We can find the fpc.exe path and add it to GITHUB_PATH.
+        $fpcPath = (Get-ChildItem -Path C:\lazarus\fpc -Filter "fpc.exe" -Recurse).DirectoryName
+        echo "$fpcPath" >> $env:GITHUB_PATH
+
+    - name: Build and Run Core Test (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        mkdir -p build
+        fpc -Mdelphi -fPIC -Tlinux @src/core/fpc.cfg src/core/libavrocore.pas -obuild/libavrocore.so
+        fpc -Mdelphi -Tlinux @src/core/fpc.cfg src/core/avro_cli.pas -obuild/avro_cli
+        fpc -Mdelphi @src/core/fpc.cfg -Fu"src/core/" tests/run_tests.pas
+        ./tests/run_tests
+
+    - name: Build and Run Core Test (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        New-Item -ItemType Directory -Force -Path build
+        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/libavrocore.pas -obuild/libavrocore.dll
+        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/avro_cli.pas -obuild/avro_cli.exe
+        fpc -Mdelphi @src/core/fpc.cfg -Fu"src/core/" tests/run_tests.pas
+        .\tests\run_tests.exe
+
+    - name: Run IPC Smoke Tests (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        chmod +x tests/test_linux_ipc.sh
+        ./tests/test_linux_ipc.sh
