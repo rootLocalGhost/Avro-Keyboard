@@ -1,0 +1,41 @@
+pkgname=avro-keyboard-wayland
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Avro Keyboard with Wayland topbar integration via Quickshell"
+arch=('x86_64')
+url="https://github.com/torvalds/avro-keyboard"
+license=('MPL')
+depends=('quickshell' 'fpc' 'glibc' 'wayland' 'qt6-declarative' 'python' 'fcitx5')
+makedepends=('fpc' 'git')
+# Source from the local project root
+source=("git+file://${PWD}/..")
+sha256sums=('SKIP')
+
+build() {
+  # The source is checked out into $srcdir/${pkgname} (usually) but here it's checked out as the folder name of the repo or ".." which is the last part.
+  # Let's just enter the first directory in $srcdir
+  cd "$srcdir/"*/
+
+  mkdir -p build
+  fpc -Mdelphi -fPIC -Tlinux src/core/libavrocore.pas -obuild/libavrocore.so
+  fpc -Mdelphi -Tlinux src/core/avro_cli.pas -obuild/avro_cli
+}
+
+package() {
+  cd "$srcdir/"*/
+
+  # Install core binary/lib
+  install -Dm755 build/libavrocore.so "$pkgdir/usr/lib/libavrocore.so"
+  install -Dm755 build/avro_cli "$pkgdir/usr/bin/avro_core_cli"
+
+  # Install Python Daemon and CLI wrapper
+  install -Dm755 src/daemon/avro-daemon "$pkgdir/usr/bin/avro-daemon"
+  install -Dm755 src/daemon/avro-cli "$pkgdir/usr/bin/avro-cli"
+
+  # Install Quickshell config
+  mkdir -p "$pkgdir/usr/share/avro-keyboard/quickshell"
+  cp -r quickshell/avro-topbar "$pkgdir/usr/share/avro-keyboard/quickshell/"
+
+  # Install systemd service
+  install -Dm644 pkg/avro.service "$pkgdir/usr/lib/systemd/user/avro.service"
+}
