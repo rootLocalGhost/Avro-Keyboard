@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Free Pascal Compiler
+      run: sudo apt-get update && sudo apt-get install -y fpc
+
+    - name: Run Tests
+      run: |
+        fpc -Mdelphi @src/core/fpc.cfg -Fu"src/core/" tests/run_tests.pas
+        ./tests/run_tests
+        chmod +x tests/test_linux_ipc.sh
+        ./tests/test_linux_ipc.sh
+
+    - name: Build Generic Linux Archive
+      run: |
+        mkdir -p release-linux/avro-keyboard-linux-x86_64
+        # Compile shared library and CLI
+        mkdir -p build
+        fpc -Mdelphi -fPIC -Tlinux @src/core/fpc.cfg src/core/libavrocore.pas -obuild/libavrocore.so
+        fpc -Mdelphi -Tlinux @src/core/fpc.cfg src/core/avro_cli.pas -obuild/avro_cli
+
+        cp build/libavrocore.so release-linux/avro-keyboard-linux-x86_64/
+        cp build/avro_cli release-linux/avro-keyboard-linux-x86_64/
+        cp src/daemon/avro-daemon release-linux/avro-keyboard-linux-x86_64/
+        cp src/daemon/avro-cli release-linux/avro-keyboard-linux-x86_64/avro-cli-py
+        cp -r quickshell release-linux/avro-keyboard-linux-x86_64/
+        cp pkg/avro.service release-linux/avro-keyboard-linux-x86_64/
+
+        cd release-linux
+        tar -czvf avro-keyboard-linux-x86_64.tar.gz avro-keyboard-linux-x86_64/
+
+    - name: Upload Generic Linux Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-generic
+        path: release-linux/avro-keyboard-linux-x86_64.tar.gz
+
+  arch-linux-build:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+    - name: Install build dependencies
+      run: |
+        pacman -Syu --noconfirm git fpc sudo fakeroot gcc binutils make
+        # Add a non-root user to run makepkg
+        useradd -m builduser
+        echo 'builduser ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builduser
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Fix ownership for makepkg
+      run: chown -R builduser:builduser .
+
+    - name: Build Arch Linux Package
+      run: |
+        su builduser -c "cd pkg && makepkg -sf --noconfirm"
+
+    - name: Upload Arch Linux Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: arch-linux
+        path: pkg/avro-keyboard-*.pkg.tar.zst
+
+  windows-build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run Windows Core Tests (FPC)
+      run: |
+        choco install fpc -y
+        # Chocolatey FPC is typically added to PATH or we might need it.
+        # It's better to provide exact path if possible, but let's assume it's in PATH or we can use $env:Path.
+        $env:Path = "C:\tools\fpc\bin\i386-Win32;" + $env:Path
+        fpc -Mdelphi @src/core/fpc.cfg -Fu"src/core/" tests/run_tests.pas
+        .\tests\run_tests.exe
+
+    - name: Build Windows Target (FPC Core)
+      run: |
+        mkdir build -Force
+        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/libavrocore.pas -obuild/libavrocore.dll
+        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/avro_cli.pas -obuild/avro_cli.exe
+
+    - name: Bundle Windows Binaries
+      run: |
+        mkdir release-windows
+        Compress-Archive -Path build\* -DestinationPath release-windows\avro-keyboard-windows-setup.zip
+
+    - name: Upload Windows Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows
+        path: release-windows/avro-keyboard-windows-setup.zip
+
+  publish-release:
+    needs: [linux-build, arch-linux-build, windows-build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Generate Checksums
+      run: |
+        cd artifacts
+        find . -type f -exec sha256sum {} + > ../checksums.txt
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        generate_release_notes: true
+        files: |
+          artifacts/linux-generic/avro-keyboard-linux-x86_64.tar.gz
+          artifacts/arch-linux/avro-keyboard-*.pkg.tar.zst
+          artifacts/windows/avro-keyboard-windows-setup.zip
+          checksums.txt
