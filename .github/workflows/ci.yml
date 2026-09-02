@@ -23,8 +23,8 @@ jobs:
     - name: Install Free Pascal Compiler (Windows)
       if: runner.os == 'Windows'
       run: |
-        choco install fpc -y
-        echo "C:\tools\fpc\bin\i386-Win32" >> $GITHUB_PATH
+        choco install lazarus -y
+        echo "C:\lazarus\fpc\3.2.2\bin\x86_64-win64" >> $GITHUB_PATH
 
     - name: Build and Run Core Test (Linux)
       if: runner.os == 'Linux'

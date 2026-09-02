@@ -80,10 +80,9 @@ jobs:
 
     - name: Run Windows Core Tests (FPC)
       run: |
-        choco install fpc -y
-        # Chocolatey FPC is typically added to PATH or we might need it.
-        # It's better to provide exact path if possible, but let's assume it's in PATH or we can use $env:Path.
-        $env:Path = "C:\tools\fpc\bin\i386-Win32;" + $env:Path
+        choco install lazarus -y
+        # Lazarus installs FPC. The bin path is usually C:\lazarus\fpc\3.2.2\bin\x86_64-win64 or similar. Let's add it to path.
+        $env:Path = "C:\lazarus\fpc\3.2.2\bin\x86_64-win64;" + $env:Path
         fpc -Mdelphi @src/core/fpc.cfg -Fu"src/core/" tests/run_tests.pas
         .\tests\run_tests.exe
 
