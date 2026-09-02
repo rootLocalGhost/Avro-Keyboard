@@ -52,7 +52,7 @@ jobs:
     steps:
     - name: Install build dependencies
       run: |
-        pacman -Syu --noconfirm git fpc sudo fakeroot gcc binutils make
+        pacman -Syu --noconfirm git fpc sudo fakeroot gcc binutils make debugedit
         # Add a non-root user to run makepkg
         useradd -m builduser
         echo 'builduser ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builduser
