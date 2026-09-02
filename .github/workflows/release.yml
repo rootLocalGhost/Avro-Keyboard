@@ -88,13 +88,13 @@ jobs:
 
     - name: Build Windows Target (FPC Core)
       run: |
-        mkdir build -Force
+        New-Item -ItemType Directory -Force -Path build
         fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/libavrocore.pas -obuild/libavrocore.dll
         fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/avro_cli.pas -obuild/avro_cli.exe
 
     - name: Bundle Windows Binaries
       run: |
-        mkdir release-windows
+        New-Item -ItemType Directory -Force -Path release-windows
         Compress-Archive -Path build\* -DestinationPath release-windows\avro-keyboard-windows-setup.zip
 
     - name: Upload Windows Artifact

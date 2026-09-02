@@ -38,7 +38,7 @@ jobs:
     - name: Build and Run Core Test (Windows)
       if: runner.os == 'Windows'
       run: |
-        mkdir build
+        New-Item -ItemType Directory -Force -Path build
         fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/libavrocore.pas -obuild/libavrocore.dll
         fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/avro_cli.pas -obuild/avro_cli.exe
         fpc -Mdelphi @src/core/fpc.cfg -Fu"src/core/" tests/run_tests.pas
