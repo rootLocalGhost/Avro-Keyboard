@@ -52,7 +52,7 @@ jobs:
     steps:
     - name: Install build dependencies
       run: |
-        pacman -Syu --noconfirm git fpc sudo fakeroot gcc binutils make
+        pacman -Syu --noconfirm git fpc sudo fakeroot gcc binutils make debugedit
         # Add a non-root user to run makepkg
         useradd -m builduser
         echo 'builduser ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builduser
@@ -95,8 +95,8 @@ jobs:
     - name: Build Windows Target (FPC Core)
       run: |
         New-Item -ItemType Directory -Force -Path build
-        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/libavrocore.pas -obuild/libavrocore.dll
-        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/avro_cli.pas -obuild/avro_cli.exe
+        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/libavrocore.pas -o"build\libavrocore.dll"
+        fpc -Mdelphi -Twin64 @src/core/fpc.cfg src/core/avro_cli.pas -o"build\avro_cli.exe"
 
     - name: Bundle Windows Binaries
       run: |
