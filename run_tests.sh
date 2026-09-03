@@ -1,8 +1,17 @@
 #!/bin/bash
 
-echo "Running tests..."
-CLI="./src/core/avro_cli"
+echo "Running cargo tests..."
+cargo test --workspace
+if [ $? -ne 0 ]; then
+  echo "Cargo tests failed!"
+  exit 1
+fi
 
+echo "Building avro-cli..."
+cargo build -p avro-cli
+CLI="./target/debug/avro-cli"
+
+echo "Running integration tests..."
 FAILS=0
 
 check() {
@@ -23,7 +32,7 @@ check "kotha" "কথা"
 check "shikkha" "শিক্ষা"
 
 if [ $FAILS -ne 0 ]; then
-  echo "Some tests failed!"
+  echo "Some integration tests failed!"
   exit 1
 else
   echo "All tests passed!"

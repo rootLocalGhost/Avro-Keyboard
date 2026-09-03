@@ -98,3 +98,4 @@ Standard edition/
 *.o
 avro_cli
 libavrocore.so
+target/

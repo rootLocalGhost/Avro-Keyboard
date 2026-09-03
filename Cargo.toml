@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "avro-core",
+    "avro-ffi",
+    "avro-cli",
+]
+resolver = "2"
