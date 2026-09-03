@@ -2,6 +2,6 @@
 members = [
     "avro-core",
     "avro-ffi",
-    "avro-cli",
+    "avro-cli", "avro-ibus",
 ]
 resolver = "2"

@@ -1,0 +1,11 @@
+[package]
+name = "avro-ibus"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+avro-core = { path = "../avro-core" }
+zbus = { version = "4", features = ["tokio"] }
+async-io = "2"
+futures-util = "0.3"
+smol = "2.0.2"
